@@ -1,1 +1,2 @@
-When the processor finished his work, the processed file is put into this folder.
+This 'done' folder is used for the processor when he finished his work.
+The processed file is moved from the 'pending' folder into this folder.
