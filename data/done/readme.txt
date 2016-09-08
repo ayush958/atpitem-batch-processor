@@ -1,0 +1,1 @@
+When the processor finished his work, the processed file is put into this folder.
