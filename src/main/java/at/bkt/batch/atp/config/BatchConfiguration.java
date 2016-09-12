@@ -31,9 +31,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import at.bkt.batch.atp.AtpArtikel;
 import at.bkt.batch.atp.AtpArtikelDelimitedLineTokenizer;
 import at.bkt.batch.atp.AtpArtikelItemProcessor;
+import at.bkt.batch.model.AtpArtikelDTO;
 
 @Configuration
 @EnableBatchProcessing
@@ -60,36 +60,41 @@ public class BatchConfiguration extends DefaultBatchConfigurer {
 
 	// tag::readerwriterprocessor[]
 	@Bean
-	public ItemReader<AtpArtikel> reader() {
-		FlatFileItemReader<AtpArtikel> reader = new FlatFileItemReader<AtpArtikel>();
+	public ItemReader<AtpArtikelDTO> reader() {
+		FlatFileItemReader<AtpArtikelDTO> reader = new FlatFileItemReader<AtpArtikelDTO>();
 		reader.setResource(new FileSystemResource(getFileName()));
 		reader.setLinesToSkip(1);
-		reader.setLineMapper(new DefaultLineMapper<AtpArtikel>() {
+		reader.setLineMapper(new DefaultLineMapper<AtpArtikelDTO>() {
 			{
-
-				
 				setLineTokenizer(new AtpArtikelDelimitedLineTokenizer());
-				setFieldSetMapper(new BeanWrapperFieldSetMapper<AtpArtikel>() {
+				setFieldSetMapper(new BeanWrapperFieldSetMapper<AtpArtikelDTO>() {
 					{
-						setTargetType(AtpArtikel.class);
+						setTargetType(AtpArtikelDTO.class);
 					}
 				});
 			}
 		});
-
 		reader.setEncoding("Windows-1252");
+		LOGGER.debug("Reader created ... ");
 		return reader;
 	}
 
+	
+	
+	
 	@Bean
-	public ItemProcessor<AtpArtikel, AtpArtikel> processor() {
+	public ItemProcessor<AtpArtikelDTO, AtpArtikelDTO> processor() {
+		LOGGER.debug("Processor ...");
 		return new AtpArtikelItemProcessor();
 	}
 
+	
+	
+	
 	@Bean
-	public ItemWriter<AtpArtikel> writer(@Qualifier("appDataSource") DataSource appDataSource) {
-		JdbcBatchItemWriter<AtpArtikel> writer = new JdbcBatchItemWriter<AtpArtikel>();
-		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<AtpArtikel>());
+	public ItemWriter<AtpArtikelDTO> writer(@Qualifier("appDataSource") DataSource appDataSource) {
+		JdbcBatchItemWriter<AtpArtikelDTO> writer = new JdbcBatchItemWriter<AtpArtikelDTO>();
+		writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<AtpArtikelDTO>());
 		writer.setSql("INSERT INTO ATPARTIKEL (ATPNR, BESCHR, ESPNR, EARTNR) VALUES (:atpnr, :beschreibung, :espnr, :eartnr)");
 		writer.setDataSource(appDataSource);
 		return writer;
@@ -100,7 +105,9 @@ public class BatchConfiguration extends DefaultBatchConfigurer {
 	
 	// tag::jobstep[]
 	@Bean
-	public Job importUserJob(JobBuilderFactory jobs, Step s1, JobExecutionListener listener) {
+	public Job importUserJob(JobBuilderFactory jobs, 
+							 Step s1, 
+							 JobExecutionListener listener) {
 		return jobs.get("atpBatchImportJob")
 				.incrementer(new RunIdIncrementer())
 				.listener(listener)
@@ -113,13 +120,15 @@ public class BatchConfiguration extends DefaultBatchConfigurer {
 	
 	
 	@Bean
-	public Step step1(StepBuilderFactory stepBuilderFactory, ItemReader<AtpArtikel> reader,
-			ItemWriter<AtpArtikel> writer, ItemProcessor<AtpArtikel, AtpArtikel> processor) {
+	public Step step1(StepBuilderFactory stepBuilderFactory, 
+			          ItemReader<AtpArtikelDTO> reader,
+			          ItemWriter<AtpArtikelDTO> writer, 
+			          ItemProcessor<AtpArtikelDTO, AtpArtikelDTO> processor) {
 		return stepBuilderFactory.get("step1")
-				.<AtpArtikel, AtpArtikel> chunk(10)
-					.faultTolerant()
-					.skip(DataIntegrityViolationException.class)
-					.skipLimit(100000)
+				.<AtpArtikelDTO, AtpArtikelDTO> chunk(10)
+				.faultTolerant()
+				.skip(DataIntegrityViolationException.class)
+				.skipLimit(100000)
 				.reader(reader)
 				.processor(processor)
 				.writer(writer)

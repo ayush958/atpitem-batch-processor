@@ -4,12 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
 
-public class AtpArtikelItemProcessor implements ItemProcessor<AtpArtikel, AtpArtikel> {
+import at.bkt.batch.model.AtpArtikelDTO;
+
+public class AtpArtikelItemProcessor implements ItemProcessor<AtpArtikelDTO, AtpArtikelDTO> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AtpArtikelItemProcessor.class);
 
 	@Override
-    public AtpArtikel process(final AtpArtikel atpArtikel) throws Exception {
+    public AtpArtikelDTO process(final AtpArtikelDTO atpArtikel) throws Exception {
     	
 		String espnr = atpArtikel.getEspnr().trim();
 		String eartnr = atpArtikel.getEartnr().trim();

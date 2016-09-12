@@ -1,8 +1,8 @@
-package at.bkt.batch.atp;
+package at.bkt.batch.model;
 
 import org.springframework.core.style.ToStringCreator;
 
-public class AtpArtikel {
+public class AtpArtikelDTO {
 
 	private int id;
 
